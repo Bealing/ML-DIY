@@ -2,6 +2,10 @@
 
 import pandas as pd
 import numpy as np
+from math import exp
+# import matplotlib  
+# import matplotlib.pyplot as plt
+
 
 class LogisticRegression(object):
     '''
@@ -9,29 +13,60 @@ class LogisticRegression(object):
     '''
 
     def __init__(self, data, label):
-        self.weight = None
         self.data = data
-        self.label = label
+        row, column = self.data.shape
+        self.row, self.column = row, column
+        self.weight = np.zeros([column+1], dtype=np.float64)
+        # add new columns
+        self.dic = {}
+        self.data['b'] = 1.0
+        self.dic['b'] = column
+        self.data['y'] = label
+        self.dic['y'] = column+1
+        self.data['f'] = 0.0
+        self.dic['f'] = column +2
 
-    def train(self, data=None, label=None):
-        '''
-        '''
-        def calculate_g(row, weight=[]):
-            '''
-            temp_row = np.concatenate((row,[1]))
+        for i in xrange(column+1):
+            self.data['Li_w%d' % i] = 0.0
+        print self.dic
+
+    def train(self):
+        
+        def calculate_f(row, weight=[]):
+            temp_row = row[0:len(weight)]
             temp_weight = np.array(weight)
-            return np.sum(temp_row*temp_weight)
-            '''
-            print row
-
-        row, column = data.shape
-        self.weight = np.zeros([1,column+1], dtype=np.float64)
-
-        g,f = (0.0,0.0)
-        self.data = data.apply(calculate_g,axis=1, weight=self.weight)
-        data.info()
-        print data.head()
-
+            # logistic distribute
+            return 1.0 /(1.0+ exp(0 - np.sum(temp_row*temp_weight)))
+        
+        def calculate_Li(row, column):
+            #print type(row)
+            return (row[self.dic['y']] - row[self.dic['f']]) * row[column]
+        def calculate_L(column, rows):
+            return np.sum(column) / rows
+        j = 1
+        index = len(self.weight)
+        while( j < 5):
+            self.data['f']  = self.data.apply(calculate_f, 1, weight=self.weight)
+            for i in xrange(index):
+                self.data['Li_w%d' % i] = self.data.apply(calculate_Li, 1, column=i)
+            self.weight = self.weight - self.data.ix[:,0-index:].apply(calculate_L, 0, rows=self.row)
+            # print "---------- %d-----------\n" % j
+            # print self.weight
+            j += 1
+        
+        self.data.info()
+        print self.data.head()
+    def test(self,data,label):
+        def calculate_f(row, weight=[]):
+            temp_row = row[0:len(weight)]
+            temp_weight = np.array(weight)
+            # logistic distribute
+            return 1 if 1.0 /(1.0+ exp(0 - np.sum(temp_row*temp_weight))) > 0.5 else -1
+        data_temp = data
+        data_temp['label'] = label
+        data_temp['predict'] = 0
+        data_temp['predict'] = data_temp.apply(calculate_f, 1, weight = self.weight)
+        print data_temp[ data_temp.label == data_temp.predict ]
 if __name__ == "__main__":
     '''
     '''
@@ -49,6 +84,6 @@ if __name__ == "__main__":
     train_label.info()
     print train_label.head(10)
     '''
-    lr = LogisticRegression()
-    lr.train(data=train_data)
-
+    lr = LogisticRegression(data=train_data, label=train_label)
+    lr.train()
+    lr.test(data=test_data, label=test_label)
