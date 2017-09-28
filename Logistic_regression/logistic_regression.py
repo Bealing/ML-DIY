@@ -101,9 +101,9 @@ if __name__ == "__main__":
     print train_label.head(10)
     '''
     
-    lr = LogisticRegression(data=train_data, label=train_label)
-    lr.train()
-    lr.test(data=test_data, label=test_label)
+    #lr = LogisticRegression(data=train_data, label=train_label)
+    #lr.train()
+    #lr.test(data=test_data, label=test_label)
     '''
     sklr = SKLR()
     sklr.fit(train_data, train_label)

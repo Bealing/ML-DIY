@@ -32,5 +32,3 @@ if __name__ == '__main__':
     test_data = '../data/titanic/test.csv'
 
     X_train = pd.read_csv(train_data, sep=None)
-    X_train.info()
-    print X_train.head()
